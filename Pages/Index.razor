@@ -1,0 +1,82 @@
+﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+@using TicTacToe.Components;
+
+@page "/"
+
+@inject ILogger<Index> Logger;
+@inject ProtectedLocalStorage LocalStorage;
+
+<PageTitle>Blazor Game</PageTitle>
+
+<MudGrid>
+    <MudContainer xs="12">
+        <MudText Typo="Typo.h2">Крестики-нолики</MudText>
+    </MudContainer>
+
+    @if (_savedUserName == null)
+    {
+        <EditForm xs="6" Model="@_model" OnValidSubmit="@HandleValidSubmit">
+            <MudContainer Class="mt-4">
+                <MudText>Как тебя зовут?</MudText>
+                <MudTextField Label="Имя пользователя" HelperText="Я все вижу"
+                    Required="true" RequiredError="Обязательное поле!" OnlyValidateIfDirty="false"
+                    @bind-Value="_model.UserName" For="(() => _model.UserName)"/>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto my-2">
+                    Сохранить
+                </MudButton>
+            </MudContainer>
+        </EditForm>
+    }
+    else
+    {
+        <MudContainer Class="my-4">
+            <MudText>Привет, @_savedUserName!</MudText>
+            <MudText>Добро пожаловать в игру Крестики-нолики</MudText>
+            <MudDivider DividerType="DividerType.Middle" Class="my-6" />
+        </MudContainer>
+    }
+
+    <MudPaper Class="">
+            <BoardComponent />
+    </MudPaper>
+
+
+
+
+
+
+</MudGrid>
+
+@code {
+    private FormModel _model = new();
+    private const string userNameKey = "userName";
+    private string? _savedUserName;
+
+    private async Task HandleValidSubmit()
+    {
+        Logger.LogInformation($"Имя Пользователя: {_model.UserName}");
+        await LocalStorage.SetAsync(userNameKey, _model.UserName);
+        _savedUserName = _model.UserName;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            var result = await LocalStorage.GetAsync<string>(userNameKey);
+            if (result.Success)
+            {
+                _savedUserName = result.Value;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private class FormModel
+    {
+        public string UserName { get; set; }
+    }
+
+
+}

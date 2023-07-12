@@ -1,0 +1,25 @@
+﻿
+<MudPaper Class="game-board">
+@*  <div class="board-cell game-cell-@board.Cell_x0_y0.ToString()" />*@
+    @for(int i = 0; i < board.RowCount; i++)
+    {
+        if (index >= 8)
+            index = 0;
+        <div class="board-column">
+        @for (int j = 0; j < board.ColumnCount; j++)
+        {
+            <div class="board-cell cell-@index game-cell-@board.BoardCells[index].ToString()" />
+            index++;
+        }
+        </div>
+    }
+</MudPaper>
+
+
+@code {
+    int index = 0;
+    Board board = new Board();
+
+}
+
+
