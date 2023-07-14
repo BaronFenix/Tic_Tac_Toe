@@ -41,7 +41,30 @@
     background-image: none;
 }
 
-.cell-0{
+.game-cell-Empty-move-x-True:hover {
+    background-image: url("/images/simple-x.png");
+    background-repeat: no-repeat;
+    background-size: 20px;
+    background-position: center;
+    
+}
+
+.game-cell-Empty-move-x-False:hover {
+    background-image: url("/images/simple-o.png");
+    background-repeat: no-repeat;
+    background-size: 20px;
+    background-position: center;
+}
+
+.game-cell-Empty-move-x-False::backdrop {
+    opacity: 0.2;
+}
+.game-cell-Empty-move-x-True::backdrop {
+    opacity: 0.2;
+}
+
+
+.cell-0 {
     border-right: 5px solid black;
     border-bottom: 5px solid black;
 }
