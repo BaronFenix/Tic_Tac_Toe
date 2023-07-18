@@ -3,17 +3,19 @@
 }
 
 .game-board {
-    background-color: #613c91;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    background-color: #613c91;
     max-width: 490px;
     padding: 10px;
 }
 
 .board-column {
+    display: flex;
+    flex-direction: row;
     min-width: 60px;
     min-height: 60px;
-    height: 100%;
+    width: 100%;
 }
 
 .board-cell {
@@ -40,22 +42,19 @@
 .game-cell-Empty {
     background-image: none;
 }
-
+/* отрисовка крестика или нолика при наведении */
 .game-cell-Empty-move-x-True:hover {
     background-image: url("/images/simple-x.png");
     background-repeat: no-repeat;
     background-size: 20px;
     background-position: center;
-    
 }
-
 .game-cell-Empty-move-x-False:hover {
     background-image: url("/images/simple-o.png");
     background-repeat: no-repeat;
     background-size: 20px;
     background-position: center;
 }
-
 .game-cell-Empty-move-x-False::backdrop {
     opacity: 0.2;
 }
@@ -63,33 +62,32 @@
     opacity: 0.2;
 }
 
-
+/* отрисовка решетки */
 .cell-0 {
     border-right: 5px solid black;
     border-bottom: 5px solid black;
 }
 .cell-1 {
-    border-right: 5px solid black;
+    border-bottom: 5px solid black;
 }
 .cell-2 {
+    border-bottom: 5px solid black;
+    border-left: 5px solid black;
+}
+.cell-3 {
+    border-right: 5px solid black;
+}
+.cell-5 {
+    border-left: 5px solid black;
+}
+.cell-6 {
     border-top: 5px solid black;
     border-right: 5px solid black;
 }
-.cell-3 {
-    border-bottom: 5px solid black;
-}
-.cell-5 {
-    border-top: 5px solid black;
-}
-.cell-6 {
-    border-left: 5px solid black;
-    border-bottom: 5px solid black;
-}
 .cell-7 {
-    border-left: 5px solid black;
+    border-top: 5px solid black;
 }
 .cell-8 {
     border-top: 5px solid black;
     border-left: 5px solid black;
-    
 }
