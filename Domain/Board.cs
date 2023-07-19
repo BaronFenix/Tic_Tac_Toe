@@ -1,4 +1,8 @@
-﻿using MudBlazor;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using MudBlazor;
+
 
 namespace TicTacToe.Domain
 {
@@ -7,10 +11,11 @@ namespace TicTacToe.Domain
         public int ColumnCount => 3;
         public int RowCount = 3;
 
-        public bool Turn_X = true;
-        public bool Turn_O = false;
+        public bool Turn_X { get; set; }
+        public bool Turn_O { get; set; }
 
         public CellState[,] Cells { get; set; }
+
         //public Gamer CurrentPlayer { get; set; }
 
         public Board()
@@ -28,16 +33,21 @@ namespace TicTacToe.Domain
 
         public void NextTurn(int row, int col)
         {
-            if (Cells[row, col] == CellState.Empty && Turn_X)
+            var gameResult = GetGameResult(out _);
+            if (gameResult == GameResult.Unknown)
             {
-                Cells[row, col] = CellState.X;
-                SwitchGamer();
+                if (Cells[row, col] == CellState.Empty && Turn_X)
+                {
+                    Cells[row, col] = CellState.X;
+                    SwitchGamer();
+                }
+                else if (Cells[row, col] == CellState.Empty && Turn_O)
+                {
+                    Cells[row, col] = CellState.O;
+                    SwitchGamer();
+                }
             }
-            else if (Cells[row, col] == CellState.Empty && Turn_O)
-            {
-                Cells[row, col] = CellState.O;
-                SwitchGamer();
-            }
+
         }
 
         private void SwitchGamer()
@@ -47,22 +57,26 @@ namespace TicTacToe.Domain
             //CurrentPlayer = CurrentPlayer == Gamer.X ? Gamer.O : Gamer.X; 
         }
 
-        public GameResult GetGameResult()
+        public GameResult GetGameResult(out CellPosition[] winCells)
         {
-            if (WinChecker(CellState.X))
+            if (WinChecker(CellState.X, out winCells))
             {
                 return GameResult.Won_X;
             }
-            if (WinChecker(CellState.O))
+            else if (WinChecker(CellState.O, out winCells))
             {
                 return GameResult.Won_O;
             }
-            else
+            else if (CheckNoWinner())
+            {
                 return GameResult.NoWinner;
+            }
+            else
+                return GameResult.Unknown;
             
         }
 
-        private bool WinChecker(CellState gamer)
+        private bool WinChecker(CellState gamer, out CellPosition[] winCells)
         {
             CellState exceptedCellState = new();
             if (gamer == CellState.X)
@@ -70,96 +84,133 @@ namespace TicTacToe.Domain
             else if (gamer == CellState.O)
                 exceptedCellState = CellState.O;
 
-            for (int i = 0; i < RowCount; i++)
-            {
-                for (int j = 0; j < ColumnCount; j++)
-                {
-                    if (CheckingWinByRow(exceptedCellState, j))
-                    {
-                        return true;
-                    }
-                    if (CheckingWinByCol(exceptedCellState, i))
-                    {
-                        return true;
-                    }
-                    if (CheckingWinByDiagonal(exceptedCellState))
-                    {
-                        return true;
-                    }
-                    if (CheckingWinByDiagonal_2(exceptedCellState))
-                    {
-                        return true;
-                    }
-                }
-            }
+            winCells = new CellPosition[0];
+
+            if (CheckingWinByRows(exceptedCellState, out winCells))
+                return true;
+
+            if (CheckingWinByColumns(exceptedCellState, out winCells))
+                return true;
+            
+            if (CheckingWinByDiagonal(exceptedCellState, out winCells))
+                return true;
+            
+            if (CheckingWinByDiagonal_2(exceptedCellState, out winCells))
+                return true;
+
             return false;
         }
 
-        private bool CheckingWinByRow(CellState gamer, int col)
+        private bool CheckNoWinner()
         {
-            int counter = 0;
-
-            for (int i = 0; i < RowCount; i++)
+            // TODO: реализовать
+            foreach (var cellState in Cells)
             {
-                for (int j = col; j < col+1; j++)
+                if (cellState == CellState.Empty)
                 {
-                    if (Cells[i, j] == gamer)
-                        counter++;
+                    return false;
                 }
             }
-            if (counter == 3)
-                return true;
-            else
-                return false;
+            return true;
         }
 
-        private bool CheckingWinByCol(CellState gamer, int row)
+        private bool CheckingWinByRows(CellState gamer, out CellPosition[] winCells)
         {
-            int counter = 0;
-
-            for (int i = row; i < row+1; i++)
+            for (int i = 0; i < RowCount; i++)
             {
+                int winLine = 0;
                 for (int j = 0; j < ColumnCount; j++)
                 {
                     if (Cells[i, j] == gamer)
-                        counter++;
+                        winLine++;
+                }
+                if (winLine == 3)
+                {
+                    winCells = new CellPosition[]
+                    {
+                        new CellPosition(i, 0),
+                        new CellPosition(i, 1),
+                        new CellPosition(i, 2)
+                    };
+                    return true;
                 }
             }
-            if (counter == 3)
-                return true;
-            else
-                return false;
+
+            winCells = new CellPosition[0];
+            return false;
         }
 
-        private bool CheckingWinByDiagonal(CellState gamer)
+        private bool CheckingWinByColumns(CellState gamer, out CellPosition[] winCells)
         {
-            int counter = 0;
+            for (int i = 0; i < RowCount; i++)
+            {
+                int winLine = 0;
+                for (int j = 0; j < ColumnCount; j++)
+                {
+                    if (Cells[j, i] == gamer)
+                        winLine++;
+                }
+                if (winLine == 3)
+                {
+                    winCells = new CellPosition[]
+                    {
+                            new CellPosition(0, i),
+                            new CellPosition(1, i),
+                            new CellPosition(2, i)
+                    };
+                    return true;
+                }
+            }
+            winCells = new CellPosition[0];
+            return false;
+        }
+
+        private bool CheckingWinByDiagonal(CellState gamer, out CellPosition[] winCells)
+        {
+            int winLine = 0;
 
             for (int i = 0; i < RowCount; i++)
             {
                 if (Cells[i, i] == gamer)
-                    counter++;
+                    winLine++;
+
+                if (winLine == 3)
+                {
+                    winCells = new CellPosition[]
+                    {
+                        new CellPosition(0, 0),
+                        new CellPosition(1, 1),
+                        new CellPosition(2, 2),
+                    };
+                    return true;
+                }
             }
-            if (counter == 3)
-                return true;
-            else
-                return false;
+            winCells = new CellPosition[0];
+            return false;
         }
 
-        private bool CheckingWinByDiagonal_2(CellState currentGamer)
+        private bool CheckingWinByDiagonal_2(CellState currentGamer, out CellPosition[] winCells)
         {
-            int counter = 0;
+            int winLine = 0;
             int j = RowCount - 1;
             for (int i = 0; i < RowCount; i++)
             {
                 if (Cells[i, j] == currentGamer)
-                    counter++;
+                    winLine++;
+                if (winLine == 3)
+                {
+                    winCells = new CellPosition[]
+                    {
+                        new CellPosition(0, 2),
+                        new CellPosition(1, 1),
+                        new CellPosition(2, 0),
+                    };
+                    return true;
+                }
                 j--;
             }
-            if (counter == 3)
-                return true;
-            else
-                return false;
+            winCells = new CellPosition[0];
+            return false;
         }
 
     }
@@ -181,9 +232,12 @@ namespace TicTacToe.Domain
 
     public enum GameResult
     {
-        //NotResult,
+        Unknown,
         NoWinner,
         Won_X,
         Won_O
     }
+
+    public record CellPosition(int row, int column);
+
 }
