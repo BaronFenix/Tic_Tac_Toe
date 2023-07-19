@@ -1,31 +1,70 @@
-﻿@inject Board board
+﻿@inject ISnackbar _snackBar;
 
-<MudPaper Class="game-board">
-@*  <div class="board-cell game-cell-@board.Cell_x0_y0.ToString()" />*@
-    @for(int row = 0; row < board.RowCount; row++)
-    {
-        if (index >= 8)
-            index = 0;
-        <div class="board-column">
-            @for (int col = 0; col < board.ColumnCount; col++)
-            {
-                var cell = @board.Cells[row, col];
-                var savedRow = row;
-                var savedCol = col;
+<MudPaper Class="game-board-fone ">
+    <MudText Class="win-text">
+        @switch (board.GetGameResult(out winCells))
+        {
+            case GameResult.Won_X:
+                string winMsg = "Победили крестики!";
+                <p>@winMsg</p>
+                GetWinMessage(winMsg);
+                break;
+            case GameResult.Won_O:
+                winMsg = "Победили нолики!";
+                <p>@winMsg</p>
+                GetWinMessage(winMsg);
+                break;
+            case GameResult.NoWinner:
+                <p>Ничья</p>
+                break;
+        }
+    </MudText>
+    <MudPaper Class="game-board mx-auto">
+        @for (int row = 0; row < board.RowCount; row++)
+        {
 
-                <div class="board-cell cell-@index game-cell-@cell.ToString()
-                    game-cell-@cell.ToString()-move-x-@board.Turn_X.ToString()"
-                    @onclick="() => board.NextTurn(savedRow, savedCol)" />
-                index++;
-            }
-        </div>
-    }
+            <div class="board-row">
+                @for (int col = 0; col < board.ColumnCount; col++)
+                {
+                    var cell = @board.Cells[row, col];
+                    var savedRow = row;
+                    var savedCol = col;
+
+                    bool isWinCell = winCells.Contains(new CellPosition(savedRow, savedCol));
+
+                    <div class="board-cell cell-@row-@col game-cell-@cell.ToString()
+                    game-cell-@cell.ToString()-move-x-@board.Turn_X.ToString()
+                     @(isWinCell ? $"win-cell-{@isWinCell.ToString()}" : "")"
+                    @onclick="() => CellClick(savedRow, savedCol)" />
+                    <div />
+                }
+            </div>
+        }
+    </MudPaper>
 </MudPaper>
 
 
+
+
+
 @code {
-    int index = 0;
-    //Board board = new Board();
+    CellPosition[] winCells = new CellPosition[0];
+
+    [Parameter]
+    public Board board { get; set; }
+
+    void CellClick(int row, int col)
+    {
+        board.NextTurn(row, col);
+    }
+
+    void GetWinMessage(string message)
+    {
+        _snackBar.Clear();
+        _snackBar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        _snackBar.Add(message, Severity.Info, config =>
+        {
+            config.Icon = Icons.Material.Filled.GridOff;
+        });
+    }
 }
-
-
